@@ -1,0 +1,191 @@
+package com.example.sary_app.ui.home
+
+import android.content.Context.LAYOUT_INFLATER_SERVICE
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.sary_app.R
+import com.example.sary_app.databinding.HomeFragmentBinding
+import com.example.sary_app.ui.adapter.CatalogAdapter
+import com.example.sary_app.ui.banner.GlideImageLoadingService
+import com.example.sary_app.ui.banner.SliderRecyclerViewAdapter
+import com.example.sary_app.utils.DataState
+import com.example.sary_app.utils.ViewType
+import com.example.sary_app.utils.hideView
+import com.example.sary_app.utils.showView
+import dagger.hilt.android.AndroidEntryPoint
+import ss.com.bannerslider.Slider
+
+
+@AndroidEntryPoint
+class HomeFragment : Fragment() {
+
+
+    private val homeViewModel: HomeViewModel by viewModels()
+    private lateinit var binding: HomeFragmentBinding
+
+    private lateinit var smartLayoutManager: GridLayoutManager
+    private lateinit var groupLayoutManager: GridLayoutManager
+    private lateinit var bannerLayoutManager: GridLayoutManager
+
+    private val smartAdapter: CatalogAdapter by lazy {
+        CatalogAdapter(R.layout.smart_layout)
+    }
+    private val groupAdapter: CatalogAdapter by lazy {
+        CatalogAdapter(R.layout.group_banner_layout)
+    }
+    private val bannerAdapter:  CatalogAdapter by lazy {
+        CatalogAdapter(R.layout.group_banner_layout)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        binding = HomeFragmentBinding.inflate(layoutInflater)
+        return binding.root
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setRefresh()
+        getHomeData()
+        subscribeBannerObservers()
+        subscribeCatalogObservers()
+    }
+
+    private fun getHomeData(){
+        homeViewModel.getSlideHomeBanner()
+        homeViewModel.getHomeCatalog()
+
+    }
+
+    private fun subscribeBannerObservers() {
+        homeViewModel.bannerState.observe(viewLifecycleOwner, {
+                when (it) {
+                    is DataState.Loading -> {
+                        showLoading()
+                    }
+                    is DataState.Success -> {
+                        hideLoading()
+                        setHomeImageSlider(it.data)
+                    }
+                    is DataState.Error -> {
+                        hideLoading()
+                    }
+                }
+            })
+    }
+
+
+    private fun subscribeCatalogObservers() {
+        homeViewModel.catalogState.observe(viewLifecycleOwner, {
+            when (it) {
+                is DataState.Loading -> {
+                    showLoading()
+                }
+                is DataState.Success -> {
+                    hideLoading()
+                    hideError()
+                    checkView(it.data)
+                }
+                is DataState.Error -> {
+                    hideLoading()
+                    showError()
+                }
+            }
+        })
+    }
+
+
+    private fun checkView(viewType: ViewType?){
+        when(viewType){
+            is ViewType.Smart ->{
+                addNewView{
+                    adapter = smartAdapter
+                    smartLayoutManager = GridLayoutManager(activity, viewType.view.rowCount , LinearLayoutManager.VERTICAL, false)
+                    layoutManager = smartLayoutManager
+                }
+                smartAdapter.items = viewType.view.data
+            }
+
+            is ViewType.Group ->{
+                addNewView{
+                    this.adapter = groupAdapter
+                    groupLayoutManager = GridLayoutManager(activity, viewType.view.rowCount , LinearLayoutManager.VERTICAL, false)
+                    layoutManager = groupLayoutManager
+                }
+                groupAdapter.items = viewType.view.data
+            }
+
+            is ViewType.Banner ->{
+                addNewView{
+                    this.adapter = bannerAdapter
+                    bannerLayoutManager = GridLayoutManager(activity, viewType.view.rowCount , LinearLayoutManager.VERTICAL, false)
+                    layoutManager = bannerLayoutManager
+                }
+                bannerAdapter.items = viewType.view.data
+            }
+        }
+    }
+
+
+    private inline fun addNewView(block: RecyclerView.() -> Unit){
+        val inflater = requireActivity().getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val child = inflater.inflate(R.layout.base_grid_view, null)
+        binding.linearContainer.addView(child)
+        val recycler = child.findViewById<RecyclerView>(R.id.recycler_view)
+        block(recycler)
+    }
+
+    private fun setHomeImageSlider(data :List<String>?) {
+        with(binding.homeImageSlider) {
+            data?.let { url ->
+                Slider.init(GlideImageLoadingService(context))
+                setAdapter(
+                    SliderRecyclerViewAdapter(
+                        url,
+                        requireActivity()
+                    )
+                )
+                setOnSlideClickListener {
+                    Toast.makeText(requireContext(), url[it], Toast.LENGTH_SHORT).show()
+                }
+
+                setLoopSlides(true)
+                setInterval(3000)
+            }
+        }
+    }
+
+
+    private fun setRefresh() {
+        binding.srl.setOnRefreshListener {
+            binding.linearContainer.removeAllViewsInLayout()
+            getHomeData()
+        }
+    }
+
+    private fun showLoading(){
+        binding.srl.isRefreshing = true
+    }
+
+    private fun hideLoading(){
+        binding.srl.isRefreshing = false
+    }
+
+    private fun showError(){
+        binding.error.showView()
+    }
+    private fun hideError(){
+        binding.error.hideView()
+    }
+}
