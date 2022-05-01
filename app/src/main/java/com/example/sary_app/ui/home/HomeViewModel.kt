@@ -95,6 +95,7 @@ class HomeViewModel @Inject constructor(private val repository: Repository) : Vi
             .subscribe({
                 _catalogState.value = it
             }, {
+                it.printStackTrace()
                 _catalogState.value = DataState.Error(it.message)
             })
     }

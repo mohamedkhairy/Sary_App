@@ -22,10 +22,13 @@ fun View.invisibleView() {
 }
 
 fun ImageView.loadAsyncImage(url: String?) {
-    Glide.with(this.context).load(url)
-        .apply(RequestOptions().override(width, height))
+    Glide.with(this.context).run {
+        if (url.isNullOrBlank())
+         return@run load(R.drawable.default_err)
+        else
+            return@run load(url)
+    }.apply(RequestOptions().override(width, height))
         .error(R.drawable.default_err)
-        .centerCrop()
         .transition(GenericTransitionOptions.with<Drawable>(android.R.anim.fade_in)).into(this)
 
 }

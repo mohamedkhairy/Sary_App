@@ -54,7 +54,7 @@ data class BusinessStatus(
 @Serializable
 data class UncompletedProfileSettings(
     @SerialName("image")
-    val image: String,
+    val image: String?,
     @SerialName("is_completed_profile")
     val isCompletedProfile: Boolean,
     @SerialName("message")
@@ -78,7 +78,7 @@ data class Data(
 //    @SerialName("has_data")
 //    val hasData: Boolean,
     @SerialName("image")
-    val image: String,
+    val image: String?,
     @SerialName("name")
     val name: String? = null,
 //    @SerialName("show_in_brochure_link")

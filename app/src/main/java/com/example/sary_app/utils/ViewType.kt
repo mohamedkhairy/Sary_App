@@ -6,6 +6,8 @@ sealed class ViewType {
     data class Smart(val view: CatalogUiType) : ViewType()
     data class Group(val view: CatalogUiType) : ViewType()
     data class Banner(val view: CatalogUiType) : ViewType()
+    data class SKU(val view: CatalogUiType) : ViewType()
+
 }
 
 object Types{

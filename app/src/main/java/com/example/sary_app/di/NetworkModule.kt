@@ -42,6 +42,7 @@ object NetworkModule {
             append(Header.DEVICE_TYPE_KEY , Header.DeviceType)
             append(HttpHeaders.Authorization, Header.Authorization)
             append(Header.ACCEPT_LANGUAGE_KEY, Header.AcceptLanguage)
+            append(Header.Platform , Header.Flagship)
             append(Header.APP_VERSION_KEY, Header.AppVersion)
         }
     }

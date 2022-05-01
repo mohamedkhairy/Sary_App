@@ -2,9 +2,11 @@ package com.example.sary_app.ui.home
 
 import android.content.Context.LAYOUT_INFLATER_SERVICE
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -35,15 +37,10 @@ class HomeFragment : Fragment() {
     private lateinit var groupLayoutManager: GridLayoutManager
     private lateinit var bannerLayoutManager: GridLayoutManager
 
-    private val smartAdapter: CatalogAdapter by lazy {
-        CatalogAdapter(R.layout.smart_layout)
-    }
-    private val groupAdapter: CatalogAdapter by lazy {
-        CatalogAdapter(R.layout.group_banner_layout)
-    }
-    private val bannerAdapter:  CatalogAdapter by lazy {
-        CatalogAdapter(R.layout.group_banner_layout)
-    }
+    private lateinit var smartAdapter: CatalogAdapter
+
+    private lateinit var groupAdapter: CatalogAdapter
+    private lateinit var bannerAdapter:  CatalogAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -93,6 +90,7 @@ class HomeFragment : Fragment() {
                     showLoading()
                 }
                 is DataState.Success -> {
+
                     hideLoading()
                     hideError()
                     checkView(it.data)
@@ -109,7 +107,8 @@ class HomeFragment : Fragment() {
     private fun checkView(viewType: ViewType?){
         when(viewType){
             is ViewType.Smart ->{
-                addNewView{
+                addNewView(viewType.view.showTitle , viewType.view.sectionTitle){
+                    smartAdapter = CatalogAdapter(R.layout.smart_layout)
                     adapter = smartAdapter
                     smartLayoutManager = GridLayoutManager(activity, viewType.view.rowCount , LinearLayoutManager.VERTICAL, false)
                     layoutManager = smartLayoutManager
@@ -118,7 +117,8 @@ class HomeFragment : Fragment() {
             }
 
             is ViewType.Group ->{
-                addNewView{
+                addNewView(viewType.view.showTitle , viewType.view.sectionTitle){
+                    groupAdapter = CatalogAdapter(R.layout.group_banner_layout)
                     this.adapter = groupAdapter
                     groupLayoutManager = GridLayoutManager(activity, viewType.view.rowCount , LinearLayoutManager.VERTICAL, false)
                     layoutManager = groupLayoutManager
@@ -127,21 +127,30 @@ class HomeFragment : Fragment() {
             }
 
             is ViewType.Banner ->{
-                addNewView{
+                addNewView(viewType.view.showTitle , viewType.view.sectionTitle){
+                    bannerAdapter = CatalogAdapter(R.layout.banner_view)
                     this.adapter = bannerAdapter
                     bannerLayoutManager = GridLayoutManager(activity, viewType.view.rowCount , LinearLayoutManager.VERTICAL, false)
                     layoutManager = bannerLayoutManager
                 }
                 bannerAdapter.items = viewType.view.data
             }
+            else -> {
+
+            }
         }
     }
 
 
-    private inline fun addNewView(block: RecyclerView.() -> Unit){
+    private inline fun addNewView(showTitle: Boolean ,title: String?, block: RecyclerView.() -> Unit){
         val inflater = requireActivity().getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val child = inflater.inflate(R.layout.base_grid_view, null)
         binding.linearContainer.addView(child)
+        if (showTitle && !title.isNullOrBlank()){
+            val sectionTitle = child.findViewById<TextView>(R.id.section_title)
+            sectionTitle.showView()
+            sectionTitle.text = title
+        }
         val recycler = child.findViewById<RecyclerView>(R.id.recycler_view)
         block(recycler)
     }

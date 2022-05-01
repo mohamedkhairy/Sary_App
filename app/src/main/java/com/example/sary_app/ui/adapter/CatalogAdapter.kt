@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sary_app.R
 import com.example.sary_app.model.CatalogItem
 import com.example.sary_app.utils.loadAsyncImage
+import com.example.sary_app.utils.showView
 import kotlin.properties.Delegates
 
 class CatalogAdapter(val layout: Int) : RecyclerView.Adapter<CatalogAdapter.DataViewHolder>(), AutoUpdatableAdapter {
@@ -28,7 +29,10 @@ class CatalogAdapter(val layout: Int) : RecyclerView.Adapter<CatalogAdapter.Data
                     val icon = findViewById<ImageView>(R.id.smart_imageView)
                     icon?.loadAsyncImage(data.imageUrl)
                     data.title?.let {
-                        val title = findViewById<TextView>(R.id.title)
+//                        val title = findViewById<TextView>(R.id.title)
+                        val title = findViewById<TextView>(R.id.product_name)
+                        title.showView()
+
                         title?.text = it
                     }
 
